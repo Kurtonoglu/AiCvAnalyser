@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import { matchJob } from '../services/gemini'
-import { buildJobMatchPrompt } from '../utils/prompts'
 import LoadingOrb from './LoadingOrb'
 
 const FIT_COLORS = {
@@ -22,7 +21,7 @@ export default function JobMatchPanel({ cvText }) {
     setError(null)
     setResult(null)
     try {
-      const data = await matchJob(cvText, jobTitle.trim(), buildJobMatchPrompt)
+      const data = await matchJob(cvText, jobTitle.trim())
       setResult(data)
     } catch (e) {
       setError(e.message)

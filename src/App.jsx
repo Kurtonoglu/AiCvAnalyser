@@ -5,7 +5,6 @@ import AnalysisResults from './components/AnalysisResults'
 import LoadingOrb from './components/LoadingOrb'
 import { analyseCV } from './services/gemini'
 import { extractTextFromFile } from './services/pdfParser'
-import { buildAnalysisPrompt } from './utils/prompts'
 
 export default function App() {
   const [file, setFile] = useState(null)
@@ -33,7 +32,7 @@ export default function App() {
         throw new Error('Could not extract enough text from your file. Try a different format.')
       }
       setCvText(text)
-      const analysis = await analyseCV(text, buildAnalysisPrompt)
+      const analysis = await analyseCV(text)
       setResult(analysis)
     } catch (e) {
       setError(e.message)
@@ -42,23 +41,10 @@ export default function App() {
     }
   }
 
-  const hasKey = !!import.meta.env.VITE_GEMINI_API_KEY
-
   return (
     <div className="min-h-screen flex flex-col font-grotesk">
       <div className="flex-1 w-full max-w-[800px] mx-auto px-4 pb-16">
         <Header />
-
-        {/* API key warning */}
-        {!hasKey && (
-          <div
-            className="mb-8 p-4 rounded-xl font-mono text-xs text-warning/80 text-center"
-            style={{ background: 'rgba(255,217,61,0.07)', border: '1px solid rgba(255,217,61,0.2)' }}
-          >
-            ⚠ No API key found. Add <span className="text-warning">VITE_GEMINI_API_KEY</span> to a{' '}
-            <span className="text-warning">.env</span> file and restart the dev server.
-          </div>
-        )}
 
         {/* Upload zone */}
         <div className="mb-6">
