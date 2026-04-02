@@ -15,13 +15,28 @@ export default function JobMatchPanel({ cvText }) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
 
+  const validateJobTitle = (title) => {
+    if (title.length < 3) return false
+    if (!/[aeiou]/i.test(title)) return false
+    // Must contain at least one word of 2+ letters (no pure symbol/number strings)
+    if (!/[a-zA-Z]{2,}/.test(title)) return false
+    // Reject runs of consonants longer than 4 in a single word (gibberish like "xkzpw")
+    if (/[^aeiou\s]{5,}/i.test(title)) return false
+    return true
+  }
+
   const handleMatch = async () => {
-    if (!jobTitle.trim()) return
+    const trimmed = jobTitle.trim()
+    if (!trimmed) return
+    if (!validateJobTitle(trimmed)) {
+      setError('Please enter a valid job title (e.g. Frontend Developer, Data Analyst)')
+      return
+    }
     setLoading(true)
     setError(null)
     setResult(null)
     try {
-      const data = await matchJob(cvText, jobTitle.trim())
+      const data = await matchJob(cvText, trimmed)
       setResult(data)
     } catch (e) {
       setError(e.message)
@@ -60,7 +75,7 @@ export default function JobMatchPanel({ cvText }) {
         />
         <button
           onClick={handleMatch}
-          disabled={loading || !jobTitle.trim()}
+          disabled={loading || jobTitle.trim().length < 3}
           className="btn-glow px-5 py-3 rounded-xl font-mono text-xs font-bold tracking-wider text-white disabled:opacity-40 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-none shrink-0"
         >
           MATCH
