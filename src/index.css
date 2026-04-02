@@ -1,0 +1,109 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg: #0A0A0F;
+  --purple: #7B61FF;
+  --pink: #FF3CAC;
+  --teal: #00D4AA;
+  --yellow: #FFD93D;
+  --orange: #FF6B35;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: var(--bg);
+  color: #fff;
+  font-family: 'Space Grotesk', sans-serif;
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* Background mesh */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 80% 60% at 20% 10%, rgba(123, 97, 255, 0.12) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 50% at 80% 80%, rgba(255, 60, 172, 0.10) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 40% at 50% 50%, rgba(0, 212, 170, 0.05) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+#root {
+  position: relative;
+  z-index: 1;
+}
+
+/* Gradient text utility */
+.gradient-text {
+  background: linear-gradient(135deg, #7B61FF 0%, #FF3CAC 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Glass card */
+.glass-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 16px;
+}
+
+/* Glow button */
+.btn-glow {
+  background: linear-gradient(135deg, #7B61FF, #FF3CAC);
+  box-shadow: 0 0 20px rgba(123, 97, 255, 0.4), 0 4px 24px rgba(255, 60, 172, 0.2);
+  transition: all 0.3s ease;
+}
+
+.btn-glow:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0 30px rgba(123, 97, 255, 0.6), 0 8px 32px rgba(255, 60, 172, 0.3);
+}
+
+.btn-glow:active {
+  transform: translateY(0);
+}
+
+/* Score ring glow */
+.ring-glow-green {
+  filter: drop-shadow(0 0 8px rgba(0, 212, 170, 0.6));
+}
+.ring-glow-yellow {
+  filter: drop-shadow(0 0 8px rgba(255, 217, 61, 0.6));
+}
+.ring-glow-orange {
+  filter: drop-shadow(0 0 8px rgba(255, 107, 53, 0.6));
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.03);
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(123, 97, 255, 0.4);
+  border-radius: 3px;
+}
+
+/* Fade-up animation delay utilities */
+.delay-100 { animation-delay: 0.1s; }
+.delay-200 { animation-delay: 0.2s; }
+.delay-300 { animation-delay: 0.3s; }
+.delay-400 { animation-delay: 0.4s; }
+.delay-500 { animation-delay: 0.5s; }
