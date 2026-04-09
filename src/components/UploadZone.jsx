@@ -1,7 +1,14 @@
 import { useState, useRef, useCallback } from 'react'
 
-const ACCEPTED = ['.pdf', '.txt', '.md', '.doc']
-const ACCEPTED_MIME = ['application/pdf', 'text/plain', 'text/markdown', 'application/msword']
+const ACCEPTED = ['.pdf', '.docx', '.doc', '.txt', '.md']
+const ACCEPTED_MIME = [
+  'application/pdf',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  'application/msword',
+  'text/plain',
+  'text/markdown',
+]
+const MAX_SIZE = 5 * 1024 * 1024
 
 function formatBytes(bytes) {
   if (bytes < 1024) return `${bytes} B`
@@ -19,11 +26,11 @@ export default function UploadZone({ onFile, disabled }) {
     if (!f) return
     const ext = '.' + f.name.split('.').pop().toLowerCase()
     if (!ACCEPTED.includes(ext) && !ACCEPTED_MIME.includes(f.type)) {
-      setError(`Unsupported file type. Please upload ${ACCEPTED.join(', ')}`)
+      setError('Unsupported file type. Please upload a PDF, DOCX, TXT, or MD file')
       return
     }
-    if (f.size > 10 * 1024 * 1024) {
-      setError('File too large. Maximum size is 10 MB.')
+    if (f.size > MAX_SIZE) {
+      setError('File too large. Maximum size is 5MB')
       return
     }
     setError(null)
@@ -34,6 +41,10 @@ export default function UploadZone({ onFile, disabled }) {
   const onDrop = useCallback((e) => {
     e.preventDefault()
     setDragging(false)
+    if (e.dataTransfer.files.length > 1) {
+      setError('Only one file can be uploaded at a time')
+      return
+    }
     const f = e.dataTransfer.files[0]
     handleFile(f)
   }, [handleFile])
@@ -66,7 +77,7 @@ export default function UploadZone({ onFile, disabled }) {
         <input
           ref={inputRef}
           type="file"
-          accept={ACCEPTED.join(',')}
+          accept=".pdf,.docx,.doc,.txt,.md"
           onChange={onInputChange}
           className="hidden"
           disabled={disabled}
@@ -112,7 +123,7 @@ export default function UploadZone({ onFile, disabled }) {
               </p>
             </div>
             <p className="font-mono text-xs text-white/25 tracking-wider">
-              PDF · TXT · MD · DOC — max 10 MB
+              PDF · DOCX · DOC · TXT · MD — max 5 MB
             </p>
           </>
         )}
