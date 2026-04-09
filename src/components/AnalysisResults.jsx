@@ -2,8 +2,9 @@ import ScoreRing from './ScoreRing'
 import CategoryBar from './CategoryBar'
 import ImprovementCard from './ImprovementCard'
 import JobMatchPanel from './JobMatchPanel'
+import { exportPDF } from '../utils/exportPDF'
 
-export default function AnalysisResults({ result, cvText }) {
+export default function AnalysisResults({ result, cvText, filename, jobMatch, onJobMatch }) {
   return (
     <div className="flex flex-col gap-8 animate-fade-up">
 
@@ -35,8 +36,18 @@ export default function AnalysisResults({ result, cvText }) {
         strengths={result.strengths}
       />
 
+      {/* Download button */}
+      <div className="flex justify-end">
+        <button
+          onClick={() => exportPDF(result, filename, jobMatch)}
+          className="border border-white/20 text-white/60 hover:border-accent-purple hover:text-accent-purple px-4 py-2 rounded-xl font-mono text-sm transition-all"
+        >
+          📄 Download Report
+        </button>
+      </div>
+
       {/* Job match */}
-      <JobMatchPanel cvText={cvText} />
+      <JobMatchPanel cvText={cvText} onJobMatch={onJobMatch} />
     </div>
   )
 }

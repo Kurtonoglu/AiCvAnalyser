@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import { matchJob } from '../services/gemini'
-import LoadingOrb from './LoadingOrb'
 
 const FIT_COLORS = {
   'Strong Fit': '#00D4AA',
@@ -9,18 +8,25 @@ const FIT_COLORS = {
   'Weak Fit': '#FF6B35',
 }
 
-export default function JobMatchPanel({ cvText }) {
+const JM_STAGES = [
+  { icon: '🔗', label: 'Comparing skills...' },
+  { icon: '📐', label: 'Evaluating fit...' },
+  { icon: '✍️', label: 'Generating recommendation...' },
+]
+
+const JM_PROGRESS = [33, 66, 90]
+
+export default function JobMatchPanel({ cvText, onJobMatch }) {
   const [jobTitle, setJobTitle] = useState('')
   const [result, setResult] = useState(null)
   const [loading, setLoading] = useState(false)
+  const [jmStage, setJmStage] = useState(null)
   const [error, setError] = useState(null)
 
   const validateJobTitle = (title) => {
     if (title.length < 3) return false
     if (!/[aeiou]/i.test(title)) return false
-    // Must contain at least one word of 2+ letters (no pure symbol/number strings)
     if (!/[a-zA-Z]{2,}/.test(title)) return false
-    // Reject runs of consonants longer than 4 in a single word (gibberish like "xkzpw")
     if (/[^aeiou\s]{5,}/i.test(title)) return false
     return true
   }
@@ -35,17 +41,27 @@ export default function JobMatchPanel({ cvText }) {
     setLoading(true)
     setError(null)
     setResult(null)
+    setJmStage(0)
+
+    const t1 = setTimeout(() => setJmStage(1), 1500)
+    const t2 = setTimeout(() => setJmStage(2), 2000)
+
     try {
       const data = await matchJob(cvText, trimmed)
+      clearTimeout(t1); clearTimeout(t2)
       setResult(data)
+      onJobMatch?.(data)
     } catch (e) {
+      clearTimeout(t1); clearTimeout(t2)
       setError(e.message)
     } finally {
+      setJmStage(null)
       setLoading(false)
     }
   }
 
   const fitColor = result ? (FIT_COLORS[result.fit_level] ?? '#7B61FF') : '#7B61FF'
+  const jmProgress = jmStage !== null ? JM_PROGRESS[jmStage] ?? 0 : 0
 
   return (
     <div className="glass-card p-6">
@@ -82,8 +98,44 @@ export default function JobMatchPanel({ cvText }) {
         </button>
       </div>
 
-      {/* Loading */}
-      {loading && <LoadingOrb message="MATCHING ROLE..." />}
+      {/* Job match loading stages */}
+      {loading && jmStage !== null && (
+        <div className="flex flex-col items-center gap-4 py-6">
+          <div className="w-full max-w-xs">
+            <div className="h-1 rounded-full bg-white/10 overflow-hidden">
+              <div
+                className="h-full rounded-full"
+                style={{
+                  width: `${jmProgress}%`,
+                  background: 'linear-gradient(90deg, #7B61FF, #FF3CAC)',
+                  transition: 'width 0.8s cubic-bezier(0.4, 0, 0.2, 1)',
+                }}
+              />
+            </div>
+          </div>
+          <div className="flex flex-col gap-2 w-full max-w-xs">
+            {JM_STAGES.map((s, i) => {
+              const isDone = i < jmStage
+              const isCurrent = i === jmStage
+              return (
+                <div
+                  key={i}
+                  className="flex items-center gap-3 transition-all duration-300"
+                  style={{ opacity: i > jmStage ? 0.25 : 1 }}
+                >
+                  <span className="text-sm w-5 text-center shrink-0">
+                    {isDone ? <span className="text-success">✓</span> : s.icon}
+                  </span>
+                  <span className={`font-mono text-xs tracking-wider ${isDone ? 'text-success' : isCurrent ? 'text-white' : 'text-white/40'}`}>
+                    {s.label}
+                  </span>
+                  {isCurrent && <span className="ml-auto w-1.5 h-1.5 rounded-full bg-accent-purple animate-pulse shrink-0" />}
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Error */}
       {error && (
