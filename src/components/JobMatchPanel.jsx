@@ -22,6 +22,7 @@ export default function JobMatchPanel({ cvText, onJobMatch }) {
   const [loading, setLoading] = useState(false)
   const [jmStage, setJmStage] = useState(null)
   const [error, setError] = useState(null)
+  const [retryMsg, setRetryMsg] = useState(null)
 
   const validateJobTitle = (title) => {
     if (title.length < 3) return false
@@ -41,13 +42,14 @@ export default function JobMatchPanel({ cvText, onJobMatch }) {
     setLoading(true)
     setError(null)
     setResult(null)
+    setRetryMsg(null)
     setJmStage(0)
 
     const t1 = setTimeout(() => setJmStage(1), 1500)
     const t2 = setTimeout(() => setJmStage(2), 2000)
 
     try {
-      const data = await matchJob(cvText, trimmed)
+      const data = await matchJob(cvText, trimmed, setRetryMsg)
       clearTimeout(t1); clearTimeout(t2)
       setResult(data)
       onJobMatch?.(data)
@@ -56,6 +58,7 @@ export default function JobMatchPanel({ cvText, onJobMatch }) {
       setError(e.message)
     } finally {
       setJmStage(null)
+      setRetryMsg(null)
       setLoading(false)
     }
   }
@@ -134,6 +137,11 @@ export default function JobMatchPanel({ cvText, onJobMatch }) {
               )
             })}
           </div>
+          {retryMsg && (
+            <p className="font-mono text-xs text-accent-purple/70 text-center tracking-wider animate-pulse">
+              {retryMsg}
+            </p>
+          )}
         </div>
       )}
 

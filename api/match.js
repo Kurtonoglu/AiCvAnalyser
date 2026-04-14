@@ -1,3 +1,6 @@
+import { checkRateLimit } from './rateLimit.js'
+import { trackEvent } from './trackAnalytics.js'
+
 const BASE_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent'
 
 function buildJobMatchPrompt(cvText, jobTitle) {
@@ -40,6 +43,15 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Missing required fields: text, jobTitle' })
   }
 
+  // Rate limiting (2 per hour for match)
+  const ip = req.headers['x-forwarded-for']?.split(',')[0].trim()
+    || req.socket?.remoteAddress
+    || 'unknown'
+  const rateCheck = await checkRateLimit(ip, 'match', 2, 60)
+  if (rateCheck.limited) {
+    return res.status(429).json({ error: rateCheck.message, retryAfter: rateCheck.retryAfter })
+  }
+
   const apiKey = process.env.GEMINI_API_KEY
   if (!apiKey) {
     return res.status(500).json({ error: 'Server misconfiguration: missing API key' })
@@ -61,7 +73,9 @@ export default async function handler(req, res) {
     if (!response.ok) {
       const err = await response.json().catch(() => ({}))
       const msg = err?.error?.message || `HTTP ${response.status}`
-      if (response.status === 429) return res.status(429).json({ error: 'Rate limit reached. Please wait a moment and try again.' })
+      if (response.status === 429 || response.status === 503) {
+        return res.status(503).json({ error: 'AI service is temporarily overloaded. Please try again in a moment.' })
+      }
       if (response.status === 400) return res.status(400).json({ error: `Invalid request: ${msg}` })
       return res.status(response.status).json({ error: `Gemini API error: ${msg}` })
     }
@@ -71,6 +85,9 @@ export default async function handler(req, res) {
     if (!raw) return res.status(500).json({ error: 'Empty response from Gemini API.' })
 
     const result = JSON.parse(raw)
+
+    trackEvent({ eventType: 'job_match', jobTitle, matchScore: result.match_score, cacheHit: false })
+
     return res.status(200).json(result)
   } catch (err) {
     return res.status(500).json({ error: err.message || 'Internal server error' })

@@ -14,6 +14,7 @@ export default function App() {
   const [result, setResult] = useState(null)
   const [loading, setLoading] = useState(false)
   const [loadingStage, setLoadingStage] = useState(null)
+  const [retryMessage, setRetryMessage] = useState(null)
   const [error, setError] = useState(null)
   const [jobMatch, setJobMatch] = useState(null)
 
@@ -33,6 +34,7 @@ export default function App() {
     setError(null)
     setResult(null)
     setJobMatch(null)
+    setRetryMessage(null)
     setLoadingStage(0)
 
     const t1 = setTimeout(() => setLoadingStage(1), 1500)
@@ -45,7 +47,7 @@ export default function App() {
         throw new Error('Could not extract enough text from your file. Try a different format.')
       }
       setCvText(text)
-      const analysis = await analyseCV(text)
+      const analysis = await analyseCV(text, setRetryMessage)
       clearTimeout(t1); clearTimeout(t2); clearTimeout(t3)
       setResult(analysis)
       saveEntry({
@@ -61,6 +63,7 @@ export default function App() {
       setError(e.message)
     } finally {
       setLoadingStage(null)
+      setRetryMessage(null)
       setLoading(false)
     }
   }
@@ -79,9 +82,14 @@ export default function App() {
         <Header />
 
         {/* Upload zone */}
-        <div className="mb-6">
+        <div className="mb-2">
           <UploadZone onFile={handleFile} disabled={loading} />
         </div>
+
+        {/* Usage indicator */}
+        <p className="font-mono text-xs text-white/20 text-center mb-6 tracking-wider">
+          Free tier &nbsp;•&nbsp; 3 analyses per hour
+        </p>
 
         {/* Analyse button */}
         {file && !loading && (
@@ -108,7 +116,7 @@ export default function App() {
         )}
 
         {/* Loading */}
-        {loading && <LoadingProgress stage={loadingStage} />}
+        {loading && <LoadingProgress stage={loadingStage} statusMessage={retryMessage} />}
 
         {/* Error */}
         {error && !loading && (

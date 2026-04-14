@@ -7,7 +7,7 @@ const STAGES = [
 
 const PROGRESS = [25, 50, 75, 90]
 
-export default function LoadingProgress({ stage }) {
+export default function LoadingProgress({ stage, statusMessage }) {
   const progress = stage !== null ? PROGRESS[stage] ?? 0 : 0
 
   return (
@@ -95,6 +95,13 @@ export default function LoadingProgress({ stage }) {
           )
         })}
       </div>
+
+      {/* Retry / status message */}
+      {statusMessage && (
+        <p className="font-mono text-xs text-accent-purple/70 text-center tracking-wider animate-pulse">
+          {statusMessage}
+        </p>
+      )}
     </div>
   )
 }
